@@ -324,6 +324,12 @@ fhandler_termios::process_sigs (char c, tty* ttyp, fhandler_termios *fh)
   termios &ti = ttyp->ti;
   pid_t pgid = ttyp->pgid;
 
+  /* Scanning all processes below is expensive, and the result only matters
+     for these keys (VEOF via not_signalled_with_nat_reader in line_edit). */
+  if (c != '\003' && !CCEQ (ti.c_cc[VINTR], c) && !CCEQ (ti.c_cc[VQUIT], c)
+      && !CCEQ (ti.c_cc[VSUSP], c) && !CCEQ (ti.c_cc[VEOF], c))
+    return not_signalled;
+
   /* The name *_nat stands for 'native' which means non-cygwin apps. */
   bool ctrl_c_event_sent = false;
   bool need_discard_input = false;
